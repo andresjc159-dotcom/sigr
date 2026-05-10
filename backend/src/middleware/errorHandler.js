@@ -12,6 +12,7 @@ export class AppError extends Error {
 export const errorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
+  console.error('[ERROR]', err);
 
   if (process.env.NODE_ENV === 'development') {
     res.status(err.statusCode).json({
@@ -29,7 +30,7 @@ export const errorHandler = (err, req, res, next) => {
     } else {
       res.status(500).json({
         status: 'error',
-        message: 'Something went wrong'
+        message: err.message || 'Something went wrong'
       });
     }
   }
