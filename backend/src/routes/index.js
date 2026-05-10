@@ -35,6 +35,16 @@ const upload = multer({
   }
 });
 
+// ============ DEBUG ============
+router.get('/debug', async (req, res) => {
+  try {
+    const result = await query('SELECT NOW()');
+    res.json({ db: 'ok', time: result.rows[0].now, env: process.env.NODE_ENV, db_host: process.env.DB_HOST, db_name: process.env.DB_NAME, db_user: process.env.DB_USER });
+  } catch (error) {
+    res.status(500).json({ db: 'error', message: error.message, stack: error.stack, code: error.code });
+  }
+});
+
 // ============ AUTH ============
 
 router.post('/auth/login', async (req, res, next) => {
