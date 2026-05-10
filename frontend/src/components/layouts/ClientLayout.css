@@ -1,0 +1,34 @@
+.client-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.client-header {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 0;
+}
+
+.client-header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.client-header .logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+.client-nav {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.client-main {
+  flex: 1;
+  padding: 24px 0;
+}
