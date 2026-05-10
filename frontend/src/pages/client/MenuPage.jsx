@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { menuService, cartService } from '../../services/api';
+import { IMG_BASE } from '../../config';
 
 const ClientMenuPage = () => {
   const [categorias, setCategorias] = useState([]);
@@ -64,7 +65,7 @@ const ClientMenuPage = () => {
         {productos.map((prod) => (
           <div key={prod.id} className="card">
             {prod.imagen && (
-              <img src={prod.imagen} alt={prod.nombre} style={{ width: '100%', height: 150, objectFit: 'cover', borderRadius: 4 }} />
+              <img src={prod.imagen.startsWith('http') ? prod.imagen : `${IMG_BASE}${prod.imagen}`} alt={prod.nombre} style={{ width: '100%', height: 150, objectFit: 'cover', borderRadius: 4 }} />
             )}
             <h3>{prod.nombre}</h3>
             <p>{prod.descripcion}</p>
