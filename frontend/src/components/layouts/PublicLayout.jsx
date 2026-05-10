@@ -1,11 +1,12 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
+import { IMG_BASE } from '../../config';
 import './PublicLayout.css';
 
 const PublicLayout = () => {
   const { theme } = useTheme();
   const restaurantName = theme?.nombre_restaurante || 'Red Velvet';
-  const logoUrl = theme?.logo_principal ? `http://localhost:3000${theme.logo_principal}` : null;
+  const logoUrl = theme?.logo_principal ? `${IMG_BASE}${theme.logo_principal}` : null;
   const primaryColor = theme?.color_primario || '#e63946';
 
   return (
