@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import { API_BASE, IMG_BASE } from '../../config';
 
 const MasterVisual = () => {
   const { theme, updateTheme, refreshTheme } = useTheme();
@@ -37,7 +38,7 @@ const MasterVisual = () => {
       setUploading(tipo);
       try {
         const token = localStorage.getItem('accessToken');
-        const response = await fetch(`http://localhost:3000/api/v1/upload/config/${tipo}`, {
+        const response = await fetch(`${API_BASE}/upload/config/${tipo}`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: formData
@@ -187,7 +188,7 @@ const MasterVisual = () => {
 
           {localConfig.logo_principal && (
             <div style={{ marginBottom: 16, padding: 12, background: '#f8f9fa', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <img src={`http://localhost:3000${localConfig.logo_principal}`} alt="Logo" style={{ width: 60, height: 60, objectFit: 'contain' }} />
+              <img src={`${IMG_BASE}${localConfig.logo_principal}`} alt="Logo" style={{ width: 60, height: 60, objectFit: 'contain' }} />
               <span style={{ fontSize: 12, color: '#6c757d' }}>Logo configurado</span>
             </div>
           )}

@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { cartService } from '../../services/api';
-
-const API_BASE = 'http://localhost:3000';
-const IMG_BASE = 'http://localhost:3000';
+import { IMG_BASE } from '../../config';
 
 const CartPage = () => {
   const [items, setItems] = useState([]);

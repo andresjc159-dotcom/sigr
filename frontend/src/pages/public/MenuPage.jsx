@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { menuService, productService, cartService } from '../../services/api';
-
-const API_BASE = 'http://localhost:3000/api/v1';
-const IMG_BASE = 'http://localhost:3000';
+import { API_BASE, IMG_BASE } from '../../config';
 
 const MenuPage = () => {
   const [categorias, setCategorias] = useState([]);

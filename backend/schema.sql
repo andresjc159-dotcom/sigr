@@ -63,9 +63,20 @@ CREATE TABLE productos (
     estado          estado_producto NOT NULL DEFAULT 'activo',
     destacado       BOOLEAN NOT NULL DEFAULT FALSE,
     stock           INTEGER CHECK (stock >= 0),
+    ingredientes    JSONB DEFAULT '[]',
     calorias        INTEGER,
     tiempo_prep_min SMALLINT,
     creado_por      UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+    creado_en       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    actualizado_en  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE toppings (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    nombre          VARCHAR(80) NOT NULL,
+    descripcion     TEXT,
+    precio          NUMERIC(10,2) NOT NULL DEFAULT 0 CHECK (precio >= 0),
+    activo          BOOLEAN NOT NULL DEFAULT TRUE,
     creado_en       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     actualizado_en  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -159,3 +170,4 @@ CREATE TRIGGER trg_productos_ts BEFORE UPDATE ON productos FOR EACH ROW EXECUTE 
 CREATE TRIGGER trg_mesas_ts BEFORE UPDATE ON mesas FOR EACH ROW EXECUTE FUNCTION atualizar_timestamp();
 CREATE TRIGGER trg_pedidos_ts BEFORE UPDATE ON pedidos FOR EACH ROW EXECUTE FUNCTION atualizar_timestamp();
 CREATE TRIGGER trg_reservas_ts BEFORE UPDATE ON reservas FOR EACH ROW EXECUTE FUNCTION atualizar_timestamp();
+CREATE TRIGGER trg_toppings_ts BEFORE UPDATE ON toppings FOR EACH ROW EXECUTE FUNCTION atualizar_timestamp();

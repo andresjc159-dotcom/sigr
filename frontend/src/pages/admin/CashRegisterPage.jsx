@@ -169,7 +169,7 @@ const CashRegisterPage = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <strong>Pedido #{pedido.numero_pedido}</strong>
                     {getEstadoBadge(pedido.estado)}
-                    <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 6, background: pedido.tipo === 'domicilio' ? '#ede9fe' : '#dbeafe', color: pedido.tipo === 'domicilio' ? '#6d28d9' : '#1e40af', fontWeight: 600, fontSize: 11 }}>
+                      <span style={{ padding: '2px 8px', borderRadius: 6, background: pedido.tipo === 'domicilio' ? '#ede9fe' : '#dbeafe', color: pedido.tipo === 'domicilio' ? '#6d28d9' : '#1e40af', fontWeight: 600, fontSize: 11 }}>
                       {pedido.tipo === 'domicilio' ? '🏠 Domicilio' : '🍽️ Local'}
                     </span>
                   </div>
@@ -218,7 +218,7 @@ const CashRegisterPage = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <strong>#{pedido.numero_pedido}</strong>
                     {getEstadoBadge(pedido.estado)}
-                    <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 6, background: '#d1fae5', color: '#065f46', fontWeight: 600, fontSize: 11 }}>
+                      <span style={{ padding: '2px 8px', borderRadius: 6, background: '#d1fae5', color: '#065f46', fontWeight: 600, fontSize: 11 }}>
                       ✅ Pagado
                     </span>
                     {pedido.metodo_pago && <span style={{ fontSize: 12, color: '#6b7280' }}>({pedido.metodo_pago})</span>}

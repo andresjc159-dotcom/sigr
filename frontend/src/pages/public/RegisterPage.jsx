@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-
-const API_BASE = 'http://localhost:3000/api/v1';
+import { useNavigate, Link } from 'react-router-dom';
+import { authService } from '../../services/api';
+import { API_BASE } from '../../config';
 
 const RegisterPage = () => {
   const [nombre, setNombre] = useState('');

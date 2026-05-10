@@ -82,7 +82,6 @@ const AdminReservationsPage = () => {
               onClick={() => setFiltro(f.key)}
               style={{
                 padding: '8px 16px',
-                border: 'none',
                 borderRadius: 20,
                 cursor: 'pointer',
                 fontSize: 13,

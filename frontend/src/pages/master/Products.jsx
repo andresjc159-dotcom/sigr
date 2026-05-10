@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { productService, menuService } from '../../services/api';
+import { IMG_BASE } from '../../config';
 
 const MasterProducts = () => {
   const [productos, setProductos] = useState([]);
@@ -106,7 +107,7 @@ const MasterProducts = () => {
       ingredientes: producto.ingredientes || []
     });
     setImageFile(null);
-    setImagePreview(producto.imagen ? `http://localhost:3000${producto.imagen}` : null);
+    setImagePreview(producto.imagen ? `${IMG_BASE}${producto.imagen}` : null);
     setShowForm(true);
   };
 
@@ -215,7 +216,7 @@ const MasterProducts = () => {
           <div key={producto.id} style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
             {producto.imagen ? (
               <img
-                src={producto.imagen.startsWith('/') ? `http://localhost:3000${producto.imagen}` : producto.imagen}
+                src={producto.imagen.startsWith('/') ? `${IMG_BASE}${producto.imagen}` : producto.imagen}
                 alt={producto.nombre}
                 style={{ width: '100%', height: 150, objectFit: 'cover', borderRadius: 8, marginBottom: 12 }}
                 onError={(e) => { e.target.style.display = 'none'; }}

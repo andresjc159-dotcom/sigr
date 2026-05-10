@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { orderService } from '../../services/api';
+import { IMG_BASE } from '../../config';
 
 const AdminOrders = () => {
   const [pedidos, setPedidos] = useState([]);
@@ -241,7 +242,7 @@ const AdminOrders = () => {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                   {det.producto_imagen && (
                                     <img
-                                      src={det.producto_imagen.startsWith('/') ? `http://localhost:3000${det.producto_imagen}` : det.producto_imagen}
+                                      src={det.producto_imagen.startsWith('/') ? `${IMG_BASE}${det.producto_imagen}` : det.producto_imagen}
                                       alt={det.producto_nombre}
                                       style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }}
                                       onError={(e) => { e.target.style.display = 'none'; }}
