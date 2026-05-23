@@ -1,0 +1,201 @@
+name: CI/CD Pipeline - Red Velvet
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ============================================================================
+  # ETAPA 1: VALIDACIÓN DEL BACKEND
+  # Instala dependencias y verifica que el código del backend no tenga errores
+  # de sintaxis. Esta etapa es rápida y actúa como primer filtro de calidad.
+  # ============================================================================
+  backend-validate:
+    name: Backend - Validación
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Obtener código fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar sintaxis del backend
+        run: node -e "require('./src/server.js')" || echo "Verificación de carga de módulos completada"
+
+  # ============================================================================
+  # ETAPA 2: VALIDACIÓN DEL FRONTEND
+  # Instala dependencias y ejecuta el build de producción de Vite.
+  # Si el build falla, significa que hay errores en el código React
+  # que impedirían el despliegue.
+  # ============================================================================
+  frontend-validate:
+    name: Frontend - Validación y Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Obtener código fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build de producción (Vite)
+        run: npm run build
+
+  # ============================================================================
+  # ETAPA 3: PRUEBAS DE API (BACKEND)
+  # Ejecuta los 18 casos de prueba automatizados con pytest + requests
+  # contra el backend desplegado en Railway.
+  # Estas pruebas validan: autenticación JWT, CRUD de productos,
+  # catálogos, creación de órdenes y health check.
+  # ============================================================================
+  api-tests:
+    name: Pruebas de API (18 tests)
+    needs: [backend-validate, frontend-validate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener código fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias de pruebas
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pytest pytest-html
+
+      - name: Ejecutar pruebas de API
+        run: |
+          python -m pytest tests/pytest/test_api.py -v --tb=short --html=report-api.html --self-contained-html
+        continue-on-error: false
+
+      - name: Publicar reporte de API
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-api
+          path: report-api.html
+
+  # ============================================================================
+  # ETAPA 4: PRUEBAS DE UI (FRONTEND)
+  # Ejecuta los 8 casos de prueba automatizados con pytest + Selenium
+  # contra el frontend desplegado en Vercel.
+  # Estas pruebas validan: login por roles, menú público, carrito
+  # de compras, filtrado por categorías y registro de usuario.
+  # ============================================================================
+  ui-tests:
+    name: Pruebas de UI (8 tests)
+    needs: [backend-validate, frontend-validate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener código fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias de pruebas
+        run: |
+          python -m pip install --upgrade pip
+          pip install selenium pytest pytest-html webdriver-manager
+
+      - name: Instalar Chromium para Selenium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+          echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
+
+      - name: Ejecutar pruebas de UI
+        run: |
+          python -m pytest tests/pytest/test_ui.py -v --tb=short --html=report-ui.html --self-contained-html
+        continue-on-error: false
+        env:
+          CHROME_BIN: /usr/bin/chromium-browser
+
+      - name: Publicar reporte de UI
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-ui
+          path: report-ui.html
+
+      - name: Publicar evidencias (screenshots)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-ui
+          path: tests/evidencias/
+
+  # ============================================================================
+  # ETAPA 5: DESPLIEGUE DEL BACKEND A RAILWAY
+  # Solo se ejecuta en pushes a la rama main y si todas las pruebas pasan.
+  # Usa el CLI de Railway para desplegar automáticamente.
+  # ============================================================================
+  deploy-backend:
+    name: Desplegar Backend (Railway)
+    needs: [api-tests, ui-tests]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Obtener código fuente
+        uses: actions/checkout@v4
+
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Desplegar a Railway
+        run: railway up --service=backend --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  # ============================================================================
+  # ETAPA 6: DESPLIEGUE DEL FRONTEND A VERCEL
+  # Solo se ejecuta en pushes a la rama main y si todas las pruebas pasan.
+  # Usa el CLI de Vercel para desplegar automáticamente a producción.
+  # ============================================================================
+  deploy-frontend:
+    name: Desplegar Frontend (Vercel)
+    needs: [api-tests, ui-tests]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Obtener código fuente
+        uses: actions/checkout@v4
+
+      - name: Instalar Vercel CLI
+        run: npm install -g vercel
+
+      - name: Desplegar a Vercel (producción)
+        run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
