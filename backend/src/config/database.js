@@ -14,7 +14,9 @@ export const pool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  // SSL solo si se pide explícitamente (DB_SSL=true). El Postgres del contenedor
+  // no usa SSL; RDS gestionado sí. Así production con DB local no falla.
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
 
 pool.on('error', (err) => {

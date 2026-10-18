@@ -1,0 +1,79 @@
+# ===========================================================================
+# Red Velvet — Docker Compose para AWS (CERO COSTO).
+# Se despliega en la MISMA instancia EC2 que Dotaciones Dony y comparte su
+# Caddy: este stack se conecta a la red "dony_net" (creada por el stack de
+# Dotaciones Dony) y Caddy enruta https://redvelvet.duckdns.org hacia aquí.
+#
+# Requisitos previos:
+#   1) El stack de Dotaciones Dony debe estar arriba (crea la red dony_net y Caddy).
+#   2) cp .env.aws.example .env.aws  y completa los secretos.
+#
+# Uso (siempre con el wrapper):
+#   ./deploy-aws.sh up -d --build
+#   ./deploy-aws.sh exec rv_api node seed-full.js
+#   ./deploy-aws.sh logs -f rv_api
+# ===========================================================================
+
+services:
+  rv_db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-red_velvet}
+      POSTGRES_USER: ${DB_USER:-redvelvet}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-redvelvet}
+    volumes:
+      - rv_pgdata:/var/lib/postgresql/data
+      - ./backend/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-redvelvet} -d ${DB_NAME:-red_velvet}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks:
+      - dony_net
+
+  rv_api:
+    build: ./backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: rv_db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-red_velvet}
+      DB_USER: ${DB_USER:-redvelvet}
+      DB_PASSWORD: ${DB_PASSWORD:-redvelvet}
+      DB_SSL: "false"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      UPLOAD_PATH: /app/uploads
+      CORS_ORIGIN: https://${RV_DOMAIN:-redvelvet.duckdns.org}
+    volumes:
+      - rv_uploads:/app/uploads
+    depends_on:
+      rv_db:
+        condition: service_healthy
+    networks:
+      - dony_net
+
+  rv_web:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE: https://${RV_DOMAIN:-redvelvet.duckdns.org}
+        VITE_IMG_BASE: https://${RV_DOMAIN:-redvelvet.duckdns.org}
+    restart: always
+    networks:
+      - dony_net
+
+volumes:
+  rv_pgdata:
+  rv_uploads:
+
+# Red compartida con Dotaciones Dony (debe existir: la crea su compose).
+networks:
+  dony_net:
+    external: true
